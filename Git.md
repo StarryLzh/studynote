@@ -29,6 +29,20 @@ $ git branch -M main
 
 说明：“-M”对分支重命名
 
+1.1或者新建本地分支main 类似下方
+
+```shell
+#我们首先建好一个文件夹，用于保存项目
+mkdit learngit
+cd learngit
+#我们假定这个项目的名字叫project，把它克隆到learngit文件夹里
+git clone (远程仓库地址)
+#列出所有分支，包括远程
+git branch -a project
+#创建dev分支，并将远程origin的dev分支下载到本地
+git checkout -b dev origin/dev
+```
+
 2.查看所有分支
 
 ```shell
