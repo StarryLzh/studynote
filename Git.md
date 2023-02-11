@@ -1,6 +1,8 @@
 # Git
 
-## 02-git安装与配置
+
+
+## git安装与配置
 
 一些有用的配置:
 
@@ -20,6 +22,12 @@ git config --global core.ignorecase false
 文件名大小写敏感：
 hello.txt I HELLO.txtl
 ```
+
+
+
+## Git远程仓库推送问题 
+
+> master 改main相关
 
 1.先给本地分支master改名
 

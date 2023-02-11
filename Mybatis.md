@@ -2,7 +2,7 @@
 
 ## 什么是框架？
 
-<img src="mybatis_imgs\image-20211018151723386.png" alt="image-20211018151723386" style="zoom:50%;" />
+<img src="./mybatis_imgs\image-20211018151723386.png" alt="image-20211018151723386" style="zoom:50%;" />
 
 框架即一个半成品软件。开发者从头开发一个软件需要花费大量精力，于是有一些项目组开发出半成品软件，开发者在这些软件的基础上进行开发，这样的软件就称之为框架。
 
@@ -78,7 +78,7 @@ public List<User> findAllUser() throws Exception {
 
 ## 什么是MyBatis?
 
-<img src="mybatis_imgs/image-20211018174135045.png?v=1.0.0" alt="image-20211018174135045" style="zoom:67%;" />
+<img src="./mybatis_imgs/image-20211018174135045.png?v=1.0.0" alt="image-20211018174135045" style="zoom:67%;" />
 
 MyBatis是一个半自动的ORM框架，其本质是对JDBC的封装。使用MyBatis不需要写JDBC代码，但需要程序员编写SQL语句。之前是apache的一个开源项目iBatis，2010年改名为MyBatis。
 
@@ -218,7 +218,7 @@ MyBatis是一个半自动的ORM框架，其本质是对JDBC的封装。使用MyB
 >
 > - 映射文件要和接口的目录结构相同。
 >
->   <img src="mybatis_imgs/屏幕截图 2023-01-01 143500.png" alt="image-20211101170541119" style="zoom:50%;" />
+>   <img src="./mybatis_imgs/屏幕截图 2023-01-01 143500.png" alt="image-20211101170541119" style="zoom:50%;" />
 >
 > - 映射文件中namespace属性要写接口的全名。
 >
@@ -257,7 +257,7 @@ public void testFindAll() throws Exception {
 
 ## MyBatis核心对象及工作流程
 
-![image-20211020104205635](myBatis_imgs/image-20211020104205635.png?v=1.0.0)
+![image-20211020104205635](./mybatis_imgs/image-20211020104205635.png?v=1.0.0)
 
 ### MyBatis核心对象
 
@@ -313,7 +313,7 @@ public void testFindAll2() throws Exception {
 
 ## Mapper动态代理原理
 
-<img src="MyBatis_imgs/image-20211019164821646.png?v=1.0.0" alt="image-20211019164821646" style="zoom:50%;" />
+<img src="./mybatis_imgs/image-20211019164821646.png?v=1.0.0" alt="image-20211019164821646" style="zoom:50%;" />
 
 接下来我们通过源码，了解MyBatis的Mapper对象究竟是怎么生成的，他又是如何代理接口的方法。
 
@@ -321,7 +321,7 @@ public void testFindAll2() throws Exception {
 
 点开测试类的`getMapper`方法，查看该方法最终调用了什么方法。
 
-<img src="MyBatis_imgs/image-20211019162901115.png?v=1.0.0" alt="image-20211019162901115" style="zoom:80%;" />
+<img src="./mybatis_imgs/image-20211019162901115.png?v=1.0.0" alt="image-20211019162901115" style="zoom:80%;" />
 
 当看到`Proxy.newProxyInstance`时，可以确定`getMapper`方法最终调用的是JDK动态代理方法，且使用MapperProxy类定义代理方式
 
@@ -329,7 +329,7 @@ public void testFindAll2() throws Exception {
 
 点开MapperProxy类，查看invoke方法，查看代理对象是如何工作的。
 
-![image-20211019163829272](MyBatis_imgs/image-20211019163829272.png?v=1.0.0)
+![image-20211019163829272](./mybatis_imgs/image-20211019163829272.png?v=1.0.0)
 
 可以看到，MapperProxy调用了MapperMethod的execute方法定义了代理方式，且底层调用的是SqlSession的方法，根据映射文件标签不同调用不同的SqlSession方法。
 
@@ -340,7 +340,7 @@ public void testFindAll2() throws Exception {
 
 ## MyBatis增删改查 ***
 
-<img src="MyBatis_imgs/image-20211020104338896.png?v=1.0.0" alt="image-20211020104338896" style="zoom:67%;" />
+<img src="./mybatis_imgs/image-20211020104338896.png?v=1.0.0" alt="image-20211020104338896" style="zoom:67%;" />
 
 ### 注意事项
 
@@ -513,7 +513,7 @@ public void after() throws IOException {
 
 ### 模糊查询 ***
 
-<img src="mybatis_imgs/image-20211020142812190.png" alt="image-20211020142812190" style="zoom:67%;" />
+<img src="./mybatis_imgs/image-20211020142812190.png" alt="image-20211020142812190" style="zoom:67%;" />
 
 #### 使用#定义参数
 
@@ -624,7 +624,7 @@ public void testFindByNameLike(){
 
 ### 分页查询 ***
 
-<img src="mybatis_imgs/image-20211020143324365.png?v=1.0.0" alt="image-20211020143324365" style="zoom:67%;" />
+<img src="./mybatis_imgs/image-20211020143324365.png?v=1.0.0" alt="image-20211020143324365" style="zoom:67%;" />
 
 分页查询时，Sql语句使用limit关键字，需要传入开始索引和每页条数两个参数。MyBatis的多参数处理有以下方式：
 
@@ -835,7 +835,7 @@ Sql中的参数使用arg0，arg1...或param1，param2...表示参数的顺序。
 
 ## MyBatis配置文件  各种标签 ***
 
-<img src="mybatis_imgs/image-20211020160252116.png?v=1.0.0" alt="image-20211020160252116" style="zoom: 50%;" />
+<img src="./mybatis_imgs/image-20211020160252116.png?v=1.0.0" alt="image-20211020160252116" style="zoom: 50%;" />
 
 ### 标签结构
 
@@ -935,7 +935,7 @@ MyBatis配置文件结构：
 
 #### `<typeAliases>`
 
-![f70fa76f3383dc83eaabef6a53d7eb93](mybatis_imgs/f70fa76f3383dc83eaabef6a53d7eb93.gif)
+![f70fa76f3383dc83eaabef6a53d7eb93](./mybatis_imgs/f70fa76f3383dc83eaabef6a53d7eb93.gif)
 
 MyBatis对常用类有默认别名支持，比如java.lang.Stirng的别名为string。除此之外，我们也可以使用`<typeAliases>`设置自定义别名。
 
@@ -1034,7 +1034,7 @@ MyBatis对常用类有默认别名支持，比如java.lang.Stirng的别名为str
 
 #### `<mappers>`
 
-![image-20211020172055016](mybatis_imgs/image-20211020172055016.png?v=1.0.0)
+![image-20211020172055016](./mybatis_imgs/image-20211020172055016.png?v=1.0.0)
 
 `<mappers>`用于注册映射文件或持久层接口，只有注册的映射文件才能使用，共有四种方式都可以完成注册：
 
@@ -1082,11 +1082,11 @@ MyBatis映射文件中除了`<insert>`、`<delete>`、`<update>`、`<select>`外
 
 MyBatis可以将数据库结果集封装到对象中，是因为结果集的列名和对象属性名相同：
 
-![image-20211103144440901](mybatis_imgs/image-20211103144440901.png?v=1.0.0)
+![image-20211103144440901](./mybatis_imgs/image-20211103144440901.png?v=1.0.0)
 
 当POJO属性名和数据库列名不一致时，MyBatis无法自动完成映射关系。如：
 
-![image-20211103144728224](mybatis_imgs/image-20211103144728224.png?v=1.0.0)
+![image-20211103144728224](./mybatis_imgs/image-20211103144728224.png?v=1.0.0)
 
 #### 此时有两种解决方案：
 
@@ -1128,7 +1128,7 @@ MyBatis可以将数据库结果集封装到对象中，是因为结果集的列�
 
 
 
-<img src="mybatis_imgs/image-20211026104210290.png" alt="image-20211026104210290" style="zoom: 33%;" />
+<img src="./mybatis_imgs/image-20211026104210290.png" alt="image-20211026104210290" style="zoom: 33%;" />
 
 `<sql>`用来定义可重用的Sql片段，通过`<include>`引入该片段。如：Sql语句的查询字段起与POJO属性相同的别名，该Sql片段就可以重用。
 
@@ -1152,7 +1152,7 @@ MyBatis可以将数据库结果集封装到对象中，是因为结果集的列�
 
 ### 特殊字符处理
 
-<img src="mybatis_imgs/image-20211021101247289.png?v=1.0.0" alt="image-20211021101247289" style="zoom:50%;" />
+<img src="./mybatis_imgs/image-20211021101247289.png?v=1.0.0" alt="image-20211021101247289" style="zoom:50%;" />
 
 在Mybatis映射文件中尽量不要使用一些特殊字符，如：`<`，`>`等。
 
@@ -1177,7 +1177,7 @@ MyBatis可以将数据库结果集封装到对象中，是因为结果集的列�
 
 ## 动态SQL *	
 
-![image-20211103160027828](mybatis_imgs/image-20211103160027828.png?v=1.0.0)
+![image-20211103160027828](./mybatis_imgs/image-20211103160027828.png?v=1.0.0)
 
 一个查询的方法的Sql语句不一定是固定的。比如电商网站的查询商品，用户使用不同条件查询，Sql语句就会添加不同的查询条件。此时就需要在方法中使用动态Sql语句。
 
@@ -1286,7 +1286,7 @@ MyBatis可以将数据库结果集封装到对象中，是因为结果集的列�
 
 ### choose、when、otherwise
 
-<img src="mybatis_imgs/image-20211021115534302.png" alt="image-20211021115534302" style="zoom:80%;" />
+<img src="./mybatis_imgs/image-20211021115534302.png" alt="image-20211021115534302" style="zoom:80%;" />
 
 这些标签表示多条件分支，类似JAVA中的`switch...case`。`<choose>`类似`switch`，`<when>`类似`case`，`<otherwise>`类似`default`，用法如下：
 
