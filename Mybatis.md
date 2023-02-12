@@ -1,5 +1,3 @@
-# Mybatis
-
 ## 什么是框架？
 
 <img src="./mybatis_imgs\image-20211018151723386.png" alt="image-20211018151723386" style="zoom:50%;" />
@@ -18,7 +16,7 @@
 
 ## 什么是ORM框架？
 
-![image-20211018164759832](https://www.itbaizhan.com/wiki/imgs/image-20211018164759832.png?v=1.0.0)
+![image-20211018164759832](./mybatis_imgs\image-20211018164759832.png)
 
 ORM（Object Relationl Mapping），对象关系映射，即在数据库和对象之间作映射处理。
 
@@ -101,7 +99,7 @@ MyBatis是一个半自动的ORM框架，其本质是对JDBC的封装。使用MyB
 
 ## MyBatis入门
 
-![image-20211018174736011](https://www.itbaizhan.com/wiki/imgs/image-20211018174736011.png?v=1.0.0)
+![image-20211018174736011](./mybatis_imgs/image-20211018174736011.png?v=1.0.0)
 
 ### 环境搭建 *
 
@@ -511,7 +509,7 @@ public void after() throws IOException {
    }
    ```
 
-### 模糊查询 ***
+## 模糊查询 ***
 
 <img src="./mybatis_imgs/image-20211020142812190.png" alt="image-20211020142812190" style="zoom:67%;" />
 
@@ -1313,7 +1311,7 @@ MyBatis可以将数据库结果集封装到对象中，是因为结果集的列�
 
 ### foreach ***
 
-![ceeb653ely1g0r3ywpaajg207s057wlr](https://www.itbaizhan.com/wiki/imgs/ceeb653ely1g0r3ywpaajg207s057wlr.gif)
+![ceeb653ely1g0r3ywpaajg207s057wlr](.\mybatis_imgs\ceeb653ely1g0r3ywpaajg207s057wlr.gif)
 
 `<foreach>`类似JAVA中的for循环，可以遍历集合或数组。`<foreach>`有如下属性：
 
@@ -1433,7 +1431,7 @@ MyBatis可以将数据库结果集封装到对象中，是因为结果集的列�
 
 ## 缓存介绍
 
-![image-20211025161213113](https://www.itbaizhan.com/wiki/imgs/image-20211025161213113.png?v=1.0.0)
+![image-20211025161213113](./mybatis_imgs\image-20211025161213113.png)
 
 缓存是内存当中一块存储数据的区域，目的是提高**查询**效率。MyBatis会将查询结果存储在缓存当中，当下次执行**相同**的SQL时不访问数据库，而是直接从缓存中获取结果，从而减少服务器的压力。
 
@@ -1460,6 +1458,1080 @@ MyBatis可以将数据库结果集封装到对象中，是因为结果集的列�
   > 3. 对结果集的要求相同
   > 4. 预编译的模板Id相同
 
+
+
+## MyBatis一级缓存
+
+<img src=".\mybatis_imgs\image-20211025164107035.png" alt="image-20211025164107035" style="zoom:67%;" />
+
+- MyBatis一级缓存也叫本地缓存。SqlSession对象中包含一个Executor对象，Executor对象中包含一个PerpetualCache对象，在该对象存放一级缓存数据。
+- 由于一级缓存是在SqlSession对象中，所以只有使用同一个SqlSession对象操作数据库时才能共享一级缓存。
+- MyBatis的一级缓存是默认开启的，不需要任何的配置。
+
+### 测试一级缓存
+
+```java
+@Test
+public void testCache1() throws IOException {
+  InputStream is = Resources.getResourceAsStream("SqlMapConfig.xml");
+  SqlSessionFactoryBuilder builder = new SqlSessionFactoryBuilder();
+  SqlSessionFactory factory = builder.build(is);
+  SqlSession session = factory.openSession();
+
+
+  // 使用同一个SqlSession查询
+  UserMapper mapper1 = session.getMapper(UserMapper.class);
+  UserMapper mapper2 = session.getMapper(UserMapper.class);
+
+
+  User user1 = mapper1.findById(1);
+  System.out.println(user1.hashCode());
+  System.out.println("-------------------------------------------");
+  User user2 = mapper2.findById(1);
+  System.out.println(user2.hashCode());
+}
+
+
+@Test
+public void testCache2() throws IOException {
+  InputStream is = Resources.getResourceAsStream("SqlMapConfig.xml");
+  SqlSessionFactoryBuilder builder = new SqlSessionFactoryBuilder();
+  SqlSessionFactory factory = builder.build(is);
+  SqlSession session1 = factory.openSession();
+  SqlSession session2 = factory.openSession();
+
+
+  // 使用不同的SqlSession查询
+  UserMapper mapper1 = session1.getMapper(UserMapper.class);
+  UserMapper mapper2 = session2.getMapper(UserMapper.class);
+
+
+  User user1 = mapper1.findById(1);
+  System.out.println(user1.hashCode());
+  System.out.println("-------------------------------------------");
+  User user2 = mapper2.findById(1);
+  System.out.println(user2.hashCode());
+}
+
+```
+
+
+
+## MyBatis清空一级缓存
+
+<img src=".\mybatis_imgs\image-20211025171923767.png" alt="image-20211025171923767" style="zoom: 50%;" />
+
+进行以下操作可以清空MyBatis一级缓存：
+
+1. `SqlSession`调用`close()`：操作后SqlSession对象不可用，该对象的缓存数据也不可用。
+2. `SqlSession`调用`clearCache()`/`commit()`：操作会清空一级缓存数据。
+3. `SqlSession`调用增删改方法：操作会清空一级缓存数据，因为增删改后数据库发生改变，缓存数据将不准确。
+
+```java
+@Test
+public void testCache3() throws IOException {
+  InputStream is = Resources.getResourceAsStream("SqlMapConfig.xml");
+  SqlSessionFactoryBuilder builder = new SqlSessionFactoryBuilder();
+  SqlSessionFactory factory = builder.build(is);
+  SqlSession session = factory.openSession();
+
+
+  UserMapper mapper1 = session.getMapper(UserMapper.class);
+  UserMapper mapper2 = session.getMapper(UserMapper.class);
+
+
+  User user1 = mapper1.findById(1);
+  System.out.println(user1.hashCode());
+  //     session.close();
+  //     session.clearCache();
+  //     session.commit();
+  mapper1.delete(2);
+  System.out.println("-------------------------------------------");
+  User user2 = mapper2.findById(1);
+  System.out.println(user2.hashCode());
+}
+```
+
+
+
+## MyBatis二级缓存
+
+![image-20211025183225309](.\mybatis_imgs\image-20211025183225309.png)
+
+- MyBatis二级缓存也叫全局缓存。数据存放在SqlSessionFactory中，只要是同一个工厂对象创建的SqlSession，在进行查询时都能共享数据。一般在项目中只有一个SqlSessionFactory对象，所以二级缓存的数据是全项目共享的。
+
+- MyBatis一级缓存存放的是对象，二级缓存存放的是对象的数据。所以要求二级缓存存放的POJO必须是可序列化的，也就是要实现Serializable接口。
+
+- MyBatis二级缓存默认不开启，手动开启后数据先存放在一级缓存中，只有一级缓存数据清空后，数据才会存到二级缓存中。
+
+  > `SqlSession`调用`clearCache()`无法将数据存到二级缓存中。
+
+### 开启二级缓存
+
+1. POJO类实现Serializable接口。
+
+   ```java
+   public class User implements Serializable {
+     private int id;
+     private String username;
+     private String sex;
+     private String address;
+   }
+   ```
+
+2. 在MyBatis配置文件添加如下设置：
+
+   ```xml
+   <settings>
+     <setting name="cacheEnabled" value="true"/>
+   </settings>
+   ```
+
+   > 由于cacheEnabled默认值是true，所以该设置可以省略。
+
+3. 在映射文件添加<cache />标签，该映射文件下的所有方法都支持二级缓存。
+
+   > 如果查询到的集合中对象过多，二级缓存只能缓存1024个对象引用。可以通过<cache />标签的size属性修改该数量。
+   >
+   > ```xml
+   > <cache size="2048"/>
+   > ```
+
+4. 测试二级缓存
+
+   ```java
+   @Test
+   public void testCache4() throws IOException {
+     InputStream is = Resources.getResourceAsStream("SqlMapConfig.xml");
+     SqlSessionFactoryBuilder builder = new SqlSessionFactoryBuilder();
+     SqlSessionFactory factory = builder.build(is);
+     SqlSession session1 = factory.openSession();
+     SqlSession session2 = factory.openSession();
+   
+     UserMapper mapper1 = session1.getMapper(UserMapper.class);
+     UserMapper mapper2 = session2.getMapper(UserMapper.class);
+   
+     User user1 = mapper1.findById(1);
+     System.out.println(user1);
+     System.out.println(user1.hashCode());
+     // 让一级缓存失效
+     session1.commit();
+     System.out.println("-------------------------------------------");
+   
+     User user2 = mapper2.findById(1);
+     System.out.println(user2);
+     System.out.println(user2.hashCode());
+   }
+   ```
+
+   
+   
+
+
+
+## MyBatis关联查询
+
+![image-20211026171307814](.\mybatis_imgs\image-20211026171307814.png)
+
+MyBatis的关联查询分为一对一关联查询和一对多关联查询。
+
+> - 查询对象时，将关联的另一个**对象**查询出来，就是一对一关联查询。
+> - 查询对象时，将关联的另一个对象的**集合**查询出来，就是一对多关联查询。
+
+例如有学生类和班级类：
+
+一个学生对应一个班级，也就是学生类中有一个班级属性，这就是一对一关系。
+
+一个班级对应多个学生，也就是班级类中有一个学生集合属性，这就是一对多关系。
+
+实体类设计如下：
+
+```java
+public class Student {
+  private int sid;
+  private String name;
+  private int age;
+  private String sex;
+  private Classes classes;
+  // 省略getter/setter/toString
+}
+
+
+public class Classes {
+  private int cid;
+  private String className;
+  private List<Student> studentList;
+  // 省略getter/setter/toString
+}
+```
+
+数据库设计如下：
+
+![image-20211026141751107](.\mybatis_imgs\image-20211026141751107.png)
+
+## MyBatis一对一关联查询
+
+<img src=".\mybatis_imgs\image-20211026171820515.png" alt="image-20211026171820515" style="zoom:50%;" />
+
+查询学生时，将关联的一个班级对象查询出来，就是一对一关联查询。
+
+### 创建持久层接口
+
+```java
+public interface StudentMapper {
+  List<Student> findAll();
+}
+
+```
+
+### 创建映射文件
+
+```xml
+<resultMap id="studentMapper" type="com.itbaizhan.pojo.Student">
+  <!-- 主键列 -->
+  <id property="sid" column="sid"></id>
+  <!-- 普通列 -->
+  <result property="name" column="name"></result>
+  <result property="age" column="age"></result>
+  <result property="sex" column="sex"></result>
+  <!-- 一对一对象列 property:属性名  column:关联列名 javaType：对象类型-->
+  <association property="classes" column="classId" javaType="com.itbaizhan.pojo.Classes">
+    <!-- 关联对象主键列 -->
+    <id property="cid" column="cid"></id>
+    <!-- 关联对象普通列 -->
+    <result property="className" column="className"></result>
+  </association>
+</resultMap>
+
+
+<!-- 多表查询，级联查询学生和其班级 -->
+<select id="findAll" resultMap="studentMapper">
+   select * from student left join classes on student.classId = classes.cid;
+</select>
+```
+
+### 配置文件注册映射文件
+
+```xml
+<mappers>
+  <package name="com.itbaizhan.mapper"/>
+</mappers>
+```
+
+### 测试一对一关联查询
+
+```java
+InputStream is = null;
+SqlSession session = null;
+
+
+@Before
+public void before() throws IOException {
+  is = Resources.getResourceAsStream("SqlMapConfig.xml");
+  SqlSessionFactoryBuilder builder = new SqlSessionFactoryBuilder();
+  SqlSessionFactory factory = builder.build(is);
+  session = factory.openSession();
+}
+
+
+@After
+public void after() throws IOException {
+  session.close();
+  is.close();
+}
+
+
+@Test
+public void testFindAllStudent(){
+  StudentMapper studentMapper = session.getMapper(StudentMapper.class);
+  List<Student> all = studentMapper.findAll();
+  all.forEach(System.out::println);
+}
+```
+
+## MyBatis一对多关联查询
+
+![image-20211026171956904](.\mybatis_imgs\image-20211026171956904.png)
+
+查询班级时，将关联的学生集合查询出来，就是一对多关联查询。
+
+### 创建持久层接口
+
+```java
+public interface ClassesMapper {
+  List<Classes> findAll();
+}
+```
+
+### 创建映射文件 ***
+
+```xml
+<resultMap id="classesMapper" type="com.itbaizhan.pojo.Classes">
+  <id property="cid" column="cid"></id>
+  <result property="className" column="className"></result>
+    
+    
+    
+  <!-- 集合列  property：属性名  column：关联列名 ofType：集合的泛型 -->
+  <collection property="studentList" column="classId" ofType="com.itbaizhan.pojo.Student">
+    <id property="sid" column="sid"></id>
+    <result property="name" column="name"></result>
+    <result property="age" column="age"></result>
+    <result property="sex" column="sex"></result>
+  </collection>
+</resultMap>
+
+
+<!-- 多表查询，级联查询班级和它的学生 -->
+<select id="findAll" resultMap="classesMapper">
+   select * from classes left join student  on classes.cid = student.classId;
+</select>
+```
+
+### 测试一对多关联查询
+
+```java
+@Test
+public void testFindAllClasses() {
+  ClassesMapper classesMapper = session.getMapper(ClassesMapper.class);
+  List<Classes> all = classesMapper.findAll();
+  all.forEach(System.out::println);
+}
+```
+
+## MyBatis多对多关联查询
+
+<img src=".\mybatis_imgs\image-20211026174411849.png" alt="image-20211026174411849" style="zoom:50%;" />
+
+MyBatis多对多关联查询本质就是两个一对多关联查询。
+
+例如有老师类和班级类：
+
+一个老师对应多个班级，也就是老师类中有一个班级集合属性。
+
+一个班级对应多个老师，也就是班级类中有一个老师集合属性。
+
+### 实体类设计如下：(分解查询也用到该实体类)***
+
+```java
+public class Teacher {
+  private Integer tid;
+  private String tname;
+  private List<Classes> classes;
+  // 省略getter/setter/toString
+}
+
+
+public class Classes {
+  private Integer cid;
+  private String className;
+  private List<Student> studentList;
+  private List<Teacher> teacherList;
+  // 省略getter/setter/toString
+}
+```
+
+在数据库设计中，需要建立中间表，双方与中间表均为一对多关系。
+
+![image-20211026152034008](.\mybatis_imgs\image-20211026152034008.png)
+
+接下来测试查询老师时，将关联的班级集合查询出来。
+
+### 创建持久层接口
+
+```java
+public interface TeacherMapper {
+  List<Teacher> findAll();
+}
+```
+
+### 创建映射文件
+
+```xml
+<resultMap id="teacherMapper" type="com.itbaizhan.pojo.Teacher">
+  <id column="tid" property="tid"></id>
+  <result column="tname" property="tname"></result>
+  <collection property="classes" column="tid" ofType="com.itbaizhan.pojo.Classes">
+    <id column="cid" property="cid"></id>
+    <result column="className" property="className"></result>
+  </collection>
+</resultMap>
+
+
+<select id="findAll" resultMap="teacherMapper">
+   select *
+   from teacher
+   left join classes_teacher
+   on teacher.tid = classes_teacher.tid
+   left join classes
+   on classes_teacher.cid = classes.cid
+</select>
+```
+
+### 测试多对多关联查询
+
+```java
+@Test
+public void testFindAllTeacher() {
+  TeacherMapper teacherMapper = session.getMapper(TeacherMapper.class);
+  List<Teacher> all = teacherMapper.findAll();
+  all.forEach(System.out::println);
+}
+
+```
+
+### 反方向的一对多（班级~老师集合~学生集合）
+
+如果**想查询班级时，将关联的老师集合查询出来**，只需要修改班级映射文件的Sql语句和`<resultMap>`即可：
+
+```xml
+<resultMap id="classesMapper" type="com.itbaizhan.pojo.Classes">
+  <id property="cid" column="cid"></id>
+  <result property="className" column="className"></result>
+  <!-- 集合列  property：属性名  column：关联列名 ofType：集合的泛型 -->
+  <collection property="studentList" column="classId" ofType="com.itbaizhan.pojo.Student">
+    <id property="sid" column="sid"></id>
+    <result property="name" column="name"></result>
+    <result property="age" column="age"></result>
+    <result property="sex" column="sex"></result>
+  </collection>、
+    
+    
+    <!-- 集合列  property：属性名  column：关联列名 ofType：集合的泛型 -->
+  <collection property="teacherList" column="cid" ofType="com.itbaizhan.pojo.Teacher">
+    <id property="tid" column="tid"></id>
+    <result property="tname" column="tname"></result>
+  </collection>
+</resultMap>
+
+
+<select id="findAll" resultMap="classesMapper">
+   select *
+   from classes
+   left join student
+   on classes.cid = student.classId
+   left join classes_teacher
+   on classes.cid = classes_teacher.cid
+   left join teacher
+   on classes_teacher.tid = teacher.tid;
+</select>
+```
+
+## MyBatis分解式查询_一对多
+
+![image-20211026173016040](.\mybatis_imgs\image-20211026173016040.png)
+
+在MyBatis多表查询中，使用连接查询时一个Sql语句就可以查询出所有的数据。如：
+
+```sql
+# 查询班级时关联查询出学生
+select *
+  from classes
+  left join student
+  on student.classId = classes.cid
+```
+
+也可以使用分解式查询，即将一个连接Sql语句分解为多条Sql语句，如：
+
+```sql
+# 查询班级时关联查询出学生
+select * from classes;
+select * from student where classId = 1;
+select * from student where classId = 2; 
+```
+
+这种写法也叫N+1查询。
+
+> 连接查询：
+>
+> - 优点：降低查询次数，从而提高查询效率。
+> - 缺点：如果查询返回的结果集较多会消耗内存空间。
+>
+> N+1查询：
+>
+> - 优点：结果集分步获取，节省内存空间。
+> - 缺点：由于需要执行多次查询，相比连接查询效率低。
+
+我们以查询班级时关联查询出学生为例，使用N+1查询：
+
+### 创建每个查询语句的持久层方法
+
+```java
+public interface ClassesMapper {
+  // 查询所有班级
+  List<Classes> findAll();
+}
+
+
+public interface StudentMapper {
+  // 根据班级Id查询学生
+  List<Student> findByClassId(int classId);
+}
+
+```
+
+### 在映射文件中进行配置
+
+```xml
+<select id="findAll" resultType="com.itbaizhan.pojo.Classes">
+   select * from classes
+</select>
+
+
+<select id="findByClassId" resultType="com.itbaizhan.pojo.Student" parameterType="int">
+   select * from student where classId = ${classId}
+</select>
+
+```
+
+### 修改主表映射文件中的查询方法
+
+```xml
+<!-- 自定义映射关系  -->
+<resultMap id="MyClassesMapper" type="com.itbaizhan.pojo.Classes">
+  <id property="cid" column="cid"></id>
+  <result property="className" column="className"></result>
+    
+    
+  <!-- select：从表查询调用的方法
+  column：调用方法时传入的参数字段
+   List<Student> findByClassId(int classId); classID 来自 class的cid
+-->
+    
+  <collection property="studentList"
+        ofType="com.itbaizhan.pojo.Student"        select="com.itbaizhan.mapper2.StudentMapper2.findByClassId"
+        column="cid">
+  </collection>
+    
+     
+</resultMap>
+
+
+<select id="findAll" resultMap="MyClassesMapper">
+   select * from classes
+</select>
+
+```
+
+### 测试查询方法
+
+```java
+@Test
+public void testFindAllClasses2(){
+  ClassesMapper2 classesMapper2 = session.getMapper(ClassesMapper2.class);
+  List<Classes> all = classesMapper2.findAll();
+  all.forEach(System.out::println);
+}
+
+```
+
+我们可以看到在控制台打印出了多条Sql语句
+
+
+
+
+
+
+
+## MyBatis分解式查询_一对一
+
+查询学生时关联查询出班级也可以使用分解式查询，首先将查询语句分开：
+
+```sql
+select * from student;
+select * from classes where cid = ?;
+```
+
+### 创建每个查询语句的持久层方法
+
+```java
+public interface StudentMapper {
+   // 查询所有学生
+  List<Student> findAll();
+}
+
+
+public interface ClassesMapper {
+  // 根据ID查询班级
+  Classes findByCid(int cid);
+}
+```
+
+### 在映射文件中进行配置
+
+```xml
+<select id="findAll" resultType="com.itbaizhan.pojo.Student">
+   select *
+   from student
+</select>
+
+
+<select id="findByCid" resultType="com.itbaizhan.pojo.Classes" parameterType="int">
+   select * from classes where cid = ${cid}
+</select>
+```
+
+### 修改主表映射文件中的查询方法
+
+```xml
+<resultMap id="MyStudentMapper" type="com.itbaizhan.pojo.Student">
+  <id property="sid" column="sid"></id>
+  <result property="name" column="name"></result>
+  <result property="age" column="age"></result>
+  <result property="sex" column="sex"></result>
+    
+    <!--  select 分解关联的方法 -->
+  <association property="classes"
+         javaType="com.itbaizhan.pojo.Classes"
+         select="com.itbaizhan.mapper2.ClassesMapper2.findByCid"
+         column="classId">
+  </association>
+</resultMap>
+
+
+<select id="findAll" resultMap="MyStudentMapper">
+   select *
+   from student
+</select>
+```
+
+### 测试查询方法
+
+```java
+@Test
+public void testFindAllStudent2(){
+  StudentMapper2 studentMapper2 = session.getMapper(StudentMapper2.class);
+  List<Student> all = studentMapper2.findAll();
+  all.forEach(System.out::println);
+}
+```
+
+## MyBatis延迟加载
+
+<img src=".\mybatis_imgs\src=http___00.imgmini.eastday.com_mobile_20160619_20160619140338_db2f6ab8b9bb54e5dd50f94e9436510b_30.gif&refer=http___00.imgmini.eastday.gif" alt="img" style="zoom:50%;" />
+
+分解式查询又分为两种加载方式：
+
+- 立即加载：在查询主表时就执行所有的Sql语句。
+- 延迟加载：又叫懒加载，首先执行主表的查询语句，使用从表数据时才触发从表的查询语句。
+
+延迟加载在获取关联数据时速度较慢，但可以节约资源，即用即取。
+
+### 开启延迟加载
+
+- 设置**所有**的N+1查询都为延迟加载：
+
+  ```xml
+  <settings>
+      <setting name="lazyLoadingEnabled" value="true"/>
+  </settings>
+  ```
+
+- 设置**某个方法**为延迟加载：
+
+  在`<association>`、`<collection>`中添加fetchType属性设置加载方式。lazy：延迟加载；eager：立即加载。
+
+### 测试延迟加载
+
+```java
+@Test
+public void testFindAllClasses2(){
+  ClassesMapper2 classesMapper2 = session.getMapper(ClassesMapper2.class);
+  List<Classes> all = classesMapper2.findAll();
+  all.forEach(System.out::println);
+  System.out.println("-------------------------");
+  System.out.println(all.get(0).getStudentList());
+}
+```
+
+由于打印对象时会调用对象的`toString`方法，`toString`方法默认会触发延迟加载的查询，所以我们无法测试出延迟加载的效果。
+
+我们在配置文件设置lazyLoadTriggerMethods属性，**该属性指定对象的什么方法触发延迟加载**，设置为空字符串即可。
+
+```xml
+<settings>
+  <setting name="lazyLoadTriggerMethods" value=""/>
+</settings>
+```
+
+> 一般情况下，一对多查询使用延迟加载，一对一查询使用立即加载。
+
+
+
+## MyBatis注解开发_环境搭建
+
+<img src=".\mybatis_imgs\image-20211027110547210.png" alt="image-20211027110547210" style="zoom:50%;" />
+
+MyBatis可以使用注解替代映射文件。映射文件的作用就是定义Sql语句，可以在持久层接口上使用@Select/@Delete/@Insert/@Update定义Sql语句，这样就不需要使用映射文件了。
+
+1. 创建maven工程，引入依赖
+
+2. 创建mybatis核心配置文件SqlMapConfig.xml
+
+3. 将log4j.properties文件放入resources中，让控制台打印SQL语句。
+
+4. 创建实体类
+
+5. 创建持久层接口，并在接口方法上定义Sql语句
+
+   ```java
+   public interface UserMapper {
+     @Select("select * from user")
+     List<User> findAll();
+   }
+   ```
+
+   > 由于注解在方法上方，而方法中就有参数类型和返回值类型，所以使用注解开发不需要定义参数类型和返回值类型
+   >
+   > 在核心配置文件注册持久层接口，
+
+6. 在核心配置文件注册持久层接口，由于没有映射文件，所以只能采用注册接口或注册包的方法。
+
+   ```xml
+   <mappers>
+     <package name="com.itbaizhan.mapper"/>
+   </mappers>
+   ```
+
+7. 测试方法
+
+   ```java
+   InputStream is = null;
+   SqlSession session = null;
+   UserMapper userMapper = null;
+   
+   @Before
+   public void before() throws IOException {
+     is = Resources.getResourceAsStream("SqlMapConfig.xml");
+     SqlSessionFactoryBuilder builder = new SqlSessionFactoryBuilder();
+     SqlSessionFactory factory = builder.build(is);
+     session = factory.openSession();
+     userMapper = session.getMapper(UserMapper.class);
+   }
+   
+   @After
+   public void after() throws IOException {
+     session.close();
+     is.close();
+   }
+   
+   
+   
+   @Test
+   public void testFindAll(){
+     List<User> all = userMapper.findAll();
+     all.forEach(System.out::println);
+   }
+   
+   ```
+
+## MyBatis注解开发_增删改查
+
+<img src=".\mybatis_imgs\image-20211027110902845.png" alt="image-20211027110902845" style="zoom:33%;" />
+
+接下来写一套基于MyBatis注解的增删改查方法：
+
+```java
+
+//主键回填
+@SelectKey(keyColumn = "id", keyProperty = "id", resultType = int.class,before = false, statement = "SELECT LAST_INSERT_ID()")
+@Insert("insert into user(username,sex,address) values(#{username},#{sex},#{address})")
+void add(User user);
+
+
+@Update("update user set username = #{username},sex=#{sex},address=#{address} where id = #{id}")
+void update(User user);
+
+
+@Delete("delete from user where id = #{id}")
+void delete(int id);
+
+
+@Select("select * from user where username like #{username}")
+List<User> findByUsernameLike(String username);
+```
+
+## MyBatis注解开发_动态Sql
+
+<img src=".\mybatis_imgs\image-20211027111253254.png" alt="image-20211027111253254" style="zoom:50%;" />
+
+MyBatis注解开发中有两种方式构建动态Sql：
+
+### 使用脚本标签
+
+将Sql嵌套在`<script>`内即可使用动态Sql标签：
+
+> 建议直接从映射文件中写好标签
+>
+> 复制到`<script>`内
+
+```java
+// 根据任意条件查询
+@Select("<script>" +
+    "  select * from user\n" +
+    "     <where>\n" +
+    "       <if test=\"username != null and username.length() != 0\">\n" +
+    "         username like #{username}\n" +
+    "       </if>\n" +
+    "       <if test=\"sex != null and sex.length() != 0\">\n" +
+    "         and sex = #{sex}\n" +
+    "       </if>\n" +
+    "       <if test=\"address != null and address.length() != 0\">\n" +
+    "         and address = #{address}\n" +
+    "       </if>\n" +
+    "     </where>" +
+    "</script>")
+List<User> findByCondition(User user);
+```
+
+### 在方法中构建动态Sql
+
+在MyBatis中有`@SelectProvider`、`@UpdateProvider`、`@DeleteProvider`、`@InsertProvider`注解。当使用这些注解时将不在注解中直接编写SQL，而是调用某个类的方法来生成SQL。
+
+```java
+public class UserProvide{
+// 生成根据任意条件查询的Sql语句
+public String findByConditionSql(User user){
+  StringBuffer sb = new StringBuffer("select * from user where 1=1 ");
+  if (user.getUsername() != null && user.getUsername().length() != 0){
+    sb.append(" and username like #{username} ");
+   }
+  if (user.getSex() != null && user.getSex().length() != 0){
+    sb.append(" and sex = #{sex} ");
+   }
+  if (user.getAddress() != null && user.getAddress().length() != 0){
+    sb.append(" and address = #{address} ");
+   }
+  return sb.toString();
+}
+}
+
+ interface UserMapper{
+     @SelectProvider(type= UserProvider.class,method="findyByConditionSql")
+     List<user> findByCondition(User user);
+ }
+```
+
+
+
+## MyBatis注解开发_自定义映射关系
+
+### POJO属性名与数据库列名不一致时
+
+当POJO属性名与数据库列名不一致时，需要自定义实体类和结果集的映射关系，在MyBatis注解开发中，使用`@Results`**定义并使用**自定义映射，使用`@ResultMap`**使用**自定义映射，用法如下：
+
+```java
+// 查询所有用户
+@Results(id = "userDiyMapper" ,value = {
+  @Result(id = true,property = "id",column = "id"),
+  @Result(property = "username",column = "username1"),
+  @Result(property = "sex",column = "sex1"),
+  @Result(property = "address",column = "address1"),
+})
+@Select("select * from user")
+List<User> findAll();
+
+
+// 根据id查询
+@ResultMap("userDiyMapper")
+@Select("select * from user where id = #{id}")
+User findById(int id);
+```
+
+
+
+
+
+
+
+## MyBatis注解开发_二级缓存
+
+<img src=".\mybatis_imgs\image-20211027183749856.png" alt="image-20211027183749856" style="zoom:50%;" />
+
+MyBatis默认开启一级缓存，接下来我们学习如何在注解开发时使用二级缓存：
+
+1. POJO类实现Serializable接口。
+
+2. 在MyBatis配置文件添加如下设置：
+
+   ```xml
+   <settings>
+     <setting name="cacheEnabled" value="true"/>
+   </settings>
+   ```
+
+3. 在持久层接口上方加注解@CacheNamespace(blocking=true)，该接口的所有方法都支持二级缓存。
+
+4. 测试二级缓存
+
+   ```java
+   @Test
+   public void testCache() throws IOException {
+     InputStream is = Resources.getResourceAsStream("SqlMapConfig.xml");
+     SqlSessionFactoryBuilder builder = new SqlSessionFactoryBuilder();
+     SqlSessionFactory factory = builder.build(is);
+     SqlSession session1 = factory.openSession();
+     SqlSession session2 = factory.openSession();
+   
+     User user1 = session1.getMapper(UserMapper.class).findById(1);
+     System.out.println(user1);
+     System.out.println(user1.hashCode());
+     session1.commit(); // 清空一次缓存，将数据存到二级缓存
+     User user2 = session2.getMapper(UserMapper.class).findById(1);
+     System.out.println(user2);
+     System.out.println(user2.hashCode());
+   
+   }
+   ```
+
+   
+
+## MyBatis注解开发_一对一关联查询
+
+<img src=".\mybatis_imgs\image-20211027184255173.png" alt="image-20211027184255173" style="zoom:50%;" />
+
+在MyBatis的**注解开发中对于多表查询只支持分解查询，不支持连接查询**。
+
+### 第三步
+
+1. 创建实体类
+
+   ```java
+   public class Student {
+        private int sid;
+        private String name;
+        private int age;
+        private String sex;
+        private Classes classes;
+        // 省略getter/setter/toString
+      }
+   
+   public class Classes {
+     private int cid;
+     private String className;
+     private List<Student> students;
+     // 省略getter/setter/toString
+   }
+   ```
+
+2. 创建分解后的查询方法
+
+   ```java
+   public interface StudentMapper {
+     @Select("select * from student")
+     List<Student> findAll();
+   }
+   
+   
+   public interface ClassesMapper {
+     // 根据id查询班级
+     @Select("select * from classes where cid = #{cid}")
+     Classes findByCid(Integer cid);
+   }
+   ```
+
+3. 主表的查询配置自定义映射关系
+
+   ```java
+   @Select("select * from student")
+   // 自定义映射关系
+   @Results(id = "studentMapper",value = {
+     @Result(id = true,property = "sid",column = "sid"),
+     @Result(property = "name",column = "name"),
+     @Result(property = "age",column = "age"),
+     @Result(property = "sex",column = "sex"),
+     /**
+          * property:属性名
+          * column:调用从表方法时传入的参数列
+          * one:表示该属性是一个对象
+          * select：调用的从表方法
+          * fetchType：加载方式
+          */
+     @Result(property = "classes",column = "classId",
+         one = @One(select = "com.itbaizhan.mapper.ClassesMapper.findByCid",
+               fetchType = FetchType.EAGER))
+   })
+   List<Student> findAll();
+   ```
+
+4. 测试
+
+   ```java
+   @Test
+   public void findAllStudent(){
+     StudentMapper studentMapper = session.getMapper(StudentMapper.class);
+     List<Student> all = studentMapper.findAll();
+     all.forEach(System.out::println);
+   }
+   ```
+
+
+
+## MyBatis注解开发_一对多关联查询
+
+1. 创建分解后的查询方法
+
+   ```java
+   public interface ClassesMapper {
+     // 查询所有班级
+     @Select("select * from classes")
+     List<Classes> findAll();
+   }
+   
+   public interface StudentMapper {
+     // 根据班级id查询学生
+     @Select("select * from student where classId = #{classId}")
+     List<Student> findByClassId(int classId);
+   }
+   ```
+
+2. 主表的查询配置自定义映射关系
+
+   ```java
+   // 查询所有班级
+   @Select("select * from classes")
+   @Results(id = "classMapper", value = {
+     @Result(id = true, property = "cid", column = "cid"),
+     @Result(property = "className", column = "className"),
+     // many：表示该属性是一个集合
+     @Result(property = "studentList", column = "cid",
+         many = @Many(select = "com.itbaizhan.mapper.StudentMapper.findByClassId",
+                fetchType = FetchType.LAZY))
+   })
+   List<Classes> findAll();
+   ```
+
+3. 测试
+
+   ```java
+   @Test
+   public void findAllClasses(){
+     ClassesMapper classesMapper = session.getMapper(ClassesMapper.class);
+     List<Classes> all = classesMapper.findAll();
+     all.forEach(System.out::println);
+   }
+   ```
+
+
+
+
+
+## 注解开发与映射文件开发的对比
+
+<img src=".\mybatis_imgs\image-20211027185007282.png" alt="image-20211027185007282" style="zoom:50%;" />
+
+MyBatis中更推荐使用映射文件开发，Spring、SpringBoot更推荐注解方式。具体使用要视项目情况而定。它们的优点对比如下：
+
+> 映射文件：
+>
+> - 代码与Sql语句是解耦的，修改时只需修改配置文件，无需修改源码。
+> - Sql语句集中，利于快速了解和维护项目。
+> - 级联查询支持连接查询和分解查询两种方式，注解开发只支持分解查询。
+>
+> 注解：
+>
+> - 配置简单，开发效率高。
+> - 类型安全，在编译期即可进行校验，不用等到运行时才发现错误。
 
 
 
